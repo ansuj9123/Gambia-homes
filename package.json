@@ -1,0 +1,48 @@
+{
+  "name": "gambia-homes",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma db push --force-reset && prisma db seed",
+    "test:webhook": "tsx --env-file=.env scripts/test-stripe-webhook.ts",
+    "admin:password": "tsx --env-file=.env scripts/set-admin-password.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "2.10.0",
+    "@prisma/client": "^6.16.2",
+    "leaflet": "^1.9.4",
+    "next": "15.5.4",
+    "next-auth": "5.0.0-beta.29",
+    "nodemailer": "6.10.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-leaflet": "^5.0.0",
+    "sharp": "0.34.5",
+    "stripe": "22.6.2",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "4.1.13",
+    "@types/leaflet": "^1.9.20",
+    "@types/node": "^20",
+    "@types/nodemailer": "6.4.24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.4",
+    "prisma": "^6.16.2",
+    "tailwindcss": "4.1.13",
+    "tsx": "^4.20.5",
+    "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

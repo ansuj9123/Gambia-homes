@@ -1,0 +1,251 @@
+// SQLite for local development. Switch provider to "postgresql" (and add PostGIS)
+// for production; the models are written to stay portable.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Accounts (Auth.js models + our fields) ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  phone         String?   @unique // E.164, e.g. +2207000001 or +447700900123
+  phoneVerified DateTime?
+  passwordHash  String?
+  image         String?
+  country       String? // where the user lives; helps diaspora vs local experience
+  role          String    @default("USER") // USER | AGENT | ADMIN
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  savedProperties SavedProperty[]
+  savedSearches   SavedSearch[]
+  enquiries       Enquiry[]
+  verifications   VerificationOrder[]
+  payments        Payment[]
+  agent           Agent?
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// One-time sign-in codes sent by SMS or WhatsApp.
+model OtpCode {
+  id        String    @id @default(cuid())
+  phone     String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
+model SavedProperty {
+  userId     String
+  propertyId String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, propertyId])
+}
+
+model SavedSearch {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  query         String // URL query string, e.g. purpose=SALE&area=Brikama&cur=GBP&max=8000
+  alertEmail    Boolean   @default(true)
+  alertWhatsApp Boolean   @default(false)
+  lastAlertedAt DateTime?
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Marketplace ----------
+
+model Agent {
+  id         String     @id @default(cuid())
+  name       String
+  agency     String?
+  phone      String // international format, e.g. +2207000001
+  email      String?
+  verified   Boolean    @default(false) // ID / business registration checked
+  createdAt  DateTime   @default(now())
+  userId     String?    @unique // account that manages this agent profile
+  user       User?      @relation(fields: [userId], references: [id])
+  properties Property[]
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  purpose     String // SALE | RENT
+  type        String // LAND | HOUSE | APARTMENT | COMPOUND | COMMERCIAL | SHORT_LET
+  region      String // see src/lib/constants.ts REGIONS
+  area        String
+  priceGmd    Int // sale price, or rent per period, in dalasi
+  rentPeriod  String? // MONTH | NIGHT (rentals only)
+  bedrooms    Int?
+  bathrooms   Int?
+  plotSqm     Int?
+  tenure      String? // LEASEHOLD | CUSTOMARY | UNKNOWN
+  lat         Float
+  lng         Float
+  trustLevel  Int      @default(0) // 0 unverified .. 4 fully verified
+  status      String   @default("PENDING") // PENDING | LIVE | REJECTED | SOLD | WITHDRAWN
+  featured    Boolean  @default(false)
+  photos      String   @default("[]") // JSON cache of PropertyPhoto rows in order: [{ src, thumb, w, h }]
+  sample      Boolean  @default(false) // demo data flag
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  agentId       String
+  agent         Agent               @relation(fields: [agentId], references: [id])
+  enquiries     Enquiry[]
+  verifications VerificationOrder[]
+  scamReports   ScamReport[]
+  savedBy       SavedProperty[]
+  images        PropertyPhoto[]
+
+  @@index([status, purpose, type])
+  @@index([region, area])
+}
+
+model Enquiry {
+  id         String   @id @default(cuid())
+  kind       String // MESSAGE | VIDEO_VIEWING
+  status     String   @default("NEW") // NEW | CONTACTED | CLOSED (set by the agent)
+  name       String
+  email      String
+  phone      String?
+  country    String? // where the buyer lives
+  message    String
+  createdAt  DateTime @default(now())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
+
+model VerificationOrder {
+  id         String    @id @default(cuid())
+  level      String // BASIC | FULL
+  priceGbp   Int
+  name       String
+  email      String
+  country    String?
+  status     String    @default("AWAITING_PAYMENT") // AWAITING_PAYMENT | IN_PROGRESS | COMPLETE
+  paidAt     DateTime?
+  payments   Payment[]
+  createdAt  DateTime  @default(now())
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id])
+  propertyId String
+  property   Property  @relation(fields: [propertyId], references: [id])
+}
+
+model ScamReport {
+  id         String   @id @default(cuid())
+  reason     String
+  contact    String?
+  createdAt  DateTime @default(now())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
+
+// One row per payment attempt (Stripe Checkout today; mobile money later).
+model Payment {
+  id                  String             @id @default(cuid())
+  kind                String // VERIFICATION_REPORT (later: FEATURED_LISTING, AGENT_PLAN)
+  status              String             @default("PENDING") // PENDING | PAID | EXPIRED | FAILED | REFUNDED
+  amount              Int // minor units, e.g. pence
+  currency            String // ISO code, lower case, e.g. gbp
+  provider            String             @default("stripe")
+  providerSessionId   String?            @unique // Stripe Checkout Session id
+  providerPaymentId   String? // Stripe PaymentIntent id
+  createdAt           DateTime           @default(now())
+  paidAt              DateTime?
+  userId              String?
+  user                User?              @relation(fields: [userId], references: [id])
+  verificationOrderId String?
+  verificationOrder   VerificationOrder? @relation(fields: [verificationOrderId], references: [id])
+
+  @@index([providerPaymentId])
+}
+
+model PropertyPhoto {
+  id         String   @id @default(cuid())
+  propertyId String
+  key        String // storage key of the large WebP
+  thumbKey   String // storage key of the thumbnail WebP
+  width      Int
+  height     Int
+  position   Int // 0 = cover photo
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, position])
+}
+
+// Every email/WhatsApp message the platform sends (or would send, in development).
+model Notification {
+  id        String   @id @default(cuid())
+  channel   String // EMAIL | WHATSAPP
+  kind      String // NEW_LEAD | ENQUIRY_RECEIPT
+  to        String
+  subject   String?
+  body      String
+  status    String // SENT | LOGGED (no provider configured) | FAILED
+  error     String?
+  relatedId String? // e.g. the Enquiry id
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
