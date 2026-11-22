@@ -1,12 +1,12 @@
 # Gambia Homes — user story backlog
 
-Last updated: 22 November 2026
+Last updated: 22 November 2026 (verification workflow added)
 
 **Status key:** ✅ Done · 🔲 To do · ⏳ Blocked (waiting on an account or decision outside the code)
 
 **Roles:** Diaspora buyer (lives abroad) · Local user (lives in The Gambia) · Agent (agent, developer or owner listing property) · Admin (Gambia Homes staff) · Field team (field agents, partner lawyers and surveyors)
 
-**Summary:** 95 stories · 50 done · 40 to do · 5 blocked
+**Summary:** 95 stories · 56 done · 34 to do · 5 blocked
 
 ---
 
@@ -81,11 +81,11 @@ Last updated: 22 November 2026
 | V3 | As a buyer, I want to pay later from my account if I cancel at checkout, so that I don't have to order again. | ✅ |
 | V4 | As a buyer, I want to see my report status (awaiting payment, in progress, ready), so that I know where things stand. | ✅ |
 | V5 | As an admin, I want payments recorded automatically, including refunds, so that our records match Stripe. | ✅ |
-| V6 | As an admin, I want to assign a verification case to a field agent, lawyer and surveyor, so that checks get done. | 🔲 |
-| V7 | As a field agent, I want to upload site photos, video and GPS boundary points from my phone, so that the site visit is recorded. | 🔲 |
-| V8 | As a lawyer, I want to upload my registry search findings, so that the report includes the legal check. | 🔲 |
-| V9 | As an admin, I want to publish the finished report (PDF) privately to the buyer, so that only they can see it. | 🔲 |
-| V10 | As a buyer, I want to download my report from my account and get a "report ready" email, so that I can act on it. | 🔲 |
+| V6 | As an admin, I want to assign a verification case to a field agent, lawyer and surveyor, so that checks get done. | ✅ |
+| V7 | As a field agent, I want to upload site photos, video and GPS boundary points from my phone, so that the site visit is recorded. | ✅ (GPS points are recorded in the survey stage) |
+| V8 | As a lawyer, I want to upload my registry search findings, so that the report includes the legal check. | ✅ |
+| V9 | As an admin, I want to publish the finished report (PDF) privately to the buyer, so that only they can see it. | ✅ (generated automatically from the findings) |
+| V10 | As a buyer, I want to download my report from my account and get a "report ready" email, so that I can act on it. | ✅ (email sends once a provider is connected; guests get a private link) |
 | V11 | As a buyer, I want an assisted purchase service with payment held by a lawyer or escrow, so that my money is safe until the transfer completes. | 🔲 |
 | V12 | As a local user, I want to pay with Wave or Afrimoney, so that I can pay without a card. | 🔲 |
 
@@ -120,7 +120,7 @@ Last updated: 22 November 2026
 | D8 | As an admin, I want to reset the admin password from the terminal without losing data, so that I'm never locked out. | ✅ |
 | D9 | As an admin, I want to create or edit a listing on behalf of an agent, so that I can help agents who aren't online. | 🔲 |
 | D10 | As an admin, I want to link an agent profile to an account by email, so that agents without the original phone number can get access. | 🔲 |
-| D11 | As an admin, I want to manage users and roles, so that I can add staff and block abusers. | 🔲 |
+| D11 | As an admin, I want to manage users and roles, so that I can add staff and block abusers. | 🔲 (partly done: Admin → Team sets field agent, lawyer and surveyor roles) |
 | D12 | As an admin, I want duplicate photos and phone numbers flagged, so that the same plot can't be listed by different people. | 🔲 |
 | D13 | As an admin, I want a log of admin actions, so that we can see who changed what. | 🔲 |
 
@@ -132,7 +132,7 @@ Last updated: 22 November 2026
 | P2 | As the founder, I want a temporary public link (Cloudflare Tunnel), so that I can show the site to anyone, anywhere. | ✅ |
 | P3 | As the business, I want development sign-in codes hidden on public links, so that nobody can sign in as an agent. | ✅ |
 | P4 | As the business, I want photos stripped of GPS and other metadata, so that people's locations aren't exposed. | ✅ |
-| P5 | As the founder, I want the code in git and backed up to a private GitHub repository, so that work is never lost. | 🔲 Commit and push from VS Code |
+| P5 | As the founder, I want the code in git and backed up to a private GitHub repository, so that work is never lost. | ✅ |
 | P6 | As the business, I want a domain name, so that the site has a permanent address. | ⏳ Choose and register |
 | P7 | As the business, I want the site hosted with PostgreSQL, cloud photo storage and daily backups, so that it's reliable for real customers. | 🔲 |
 | P8 | As the business, I want terms of service, a privacy policy and a cookie notice, so that we meet UK/EU (GDPR) and Gambian requirements. | 🔲 Needs a lawyer's review |
@@ -152,4 +152,4 @@ Last updated: 22 November 2026
 
 ---
 
-**Suggested next:** P5 (commit and back up), then the verification workflow V6–V10, then go live (P6, P7, P8, P9).
+**Suggested next:** go live (P6 domain, P7 hosting, P8 legal pages, P9 security), plus A11 password reset once an email provider is chosen.

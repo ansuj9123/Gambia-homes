@@ -21,7 +21,7 @@ model User {
   passwordHash  String?
   image         String?
   country       String? // where the user lives; helps diaspora vs local experience
-  role          String    @default("USER") // USER | AGENT | ADMIN
+  role          String    @default("USER") // USER | AGENT | ADMIN | FIELD_AGENT | LAWYER | SURVEYOR
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -32,6 +32,10 @@ model User {
   enquiries       Enquiry[]
   verifications   VerificationOrder[]
   payments        Payment[]
+  fieldCases      VerificationOrder[]    @relation("FieldAgentCases")
+  lawyerCases     VerificationOrder[]    @relation("LawyerCases")
+  surveyorCases   VerificationOrder[]    @relation("SurveyorCases")
+  evidence        VerificationEvidence[]
   agent           Agent?
 }
 
@@ -175,20 +179,43 @@ model Enquiry {
 }
 
 model VerificationOrder {
-  id         String    @id @default(cuid())
-  level      String // BASIC | FULL
-  priceGbp   Int
-  name       String
-  email      String
-  country    String?
-  status     String    @default("AWAITING_PAYMENT") // AWAITING_PAYMENT | IN_PROGRESS | COMPLETE
-  paidAt     DateTime?
-  payments   Payment[]
-  createdAt  DateTime  @default(now())
-  userId     String?
-  user       User?     @relation(fields: [userId], references: [id])
-  propertyId String
-  property   Property  @relation(fields: [propertyId], references: [id])
+  id       String    @id @default(cuid())
+  level    String // BASIC | FULL
+  priceGbp Int
+  name     String
+  email    String
+  country  String?
+  status   String    @default("AWAITING_PAYMENT") // AWAITING_PAYMENT | IN_PROGRESS | COMPLETE
+  paidAt   DateTime?
+  payments Payment[]
+
+  // Case work (admin assigns; partners record findings)
+  accessToken        String                 @unique @default(cuid()) // lets guest buyers download their report
+  fieldAgentId       String?
+  fieldAgent         User?                  @relation("FieldAgentCases", fields: [fieldAgentId], references: [id])
+  lawyerId           String?
+  lawyer             User?                  @relation("LawyerCases", fields: [lawyerId], references: [id])
+  surveyorId         String?
+  surveyor           User?                  @relation("SurveyorCases", fields: [surveyorId], references: [id])
+  dueDate            DateTime?
+  siteNotes          String?
+  siteVisitedAt      DateTime?
+  gpsPoints          String                 @default("[]") // JSON [{ lat, lng, label }]
+  surveyNotes        String?
+  surveyedAt         DateTime?
+  registryFindings   String?
+  registryOutcome    String? // CLEAR | ISSUES | UNABLE
+  registrySearchedAt DateTime?
+  outcome            String? // VERIFIED | ISSUES_FOUND | COULD_NOT_VERIFY
+  summary            String?
+  reportKey          String? // private storage key of the published PDF
+  reportPublishedAt  DateTime?
+  evidence           VerificationEvidence[]
+  createdAt          DateTime               @default(now())
+  userId             String?
+  user               User?                  @relation(fields: [userId], references: [id])
+  propertyId         String
+  property           Property               @relation(fields: [propertyId], references: [id])
 }
 
 model ScamReport {
@@ -248,4 +275,21 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// Private files gathered during a verification (site photos, documents). Never public.
+model VerificationEvidence {
+  id           String            @id @default(cuid())
+  orderId      String
+  order        VerificationOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  kind         String // PHOTO | DOCUMENT
+  stage        String // SITE | SURVEY | REGISTRY
+  key          String // private storage key
+  fileName     String
+  caption      String?
+  uploadedById String
+  uploadedBy   User              @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime          @default(now())
+
+  @@index([orderId])
 }

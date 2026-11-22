@@ -78,7 +78,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                       <button className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">Pay £{o.priceGbp}</button>
                     </form>
                   )}
-                  {o.paidAt && <span className="text-xs text-slate-500">paid {when(o.paidAt)}</span>}
+                  {o.paidAt && !o.reportPublishedAt && <span className="text-xs text-slate-500">paid {when(o.paidAt)}</span>}
+                  {o.reportPublishedAt && (
+                    <a href={`/api/reports/${o.id}`} className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white">Download report (PDF)</a>
+                  )}
                 </span>
               </li>
             ))}

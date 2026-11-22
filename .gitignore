@@ -46,3 +46,6 @@ prisma/*.db-journal
 
 # uploaded photos (local storage driver)
 storage/
+
+# Claude app preview settings
+.claude/

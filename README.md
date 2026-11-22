@@ -63,6 +63,7 @@ Dashboard are recorded as `REFUNDED` through the webhook. Unpaid orders can be p
 | Photos | Upload on the listing form, in admin and in the agent portal; reorder and choose a cover; gallery on listing pages. Photos are shrunk in the browser, then resized to WebP on the server with all metadata (including GPS) removed. Stored in `storage/` locally |
 | Agent portal | `/agent`: listings with status and lead counts, edit details and photos, mark as sold/let or withdraw, leads inbox with WhatsApp/email reply and New/Contacted/Closed status. Agents get access by signing in with a code to the phone number on their listings, or by listing while signed in |
 | Notifications | New enquiry → alert to the agent (email + WhatsApp) and a receipt to the buyer. All messages appear in Admin → Messages sent. Emails send when `SMTP_URL` is set; WhatsApp is recorded only until the WhatsApp Business Platform is connected |
+| Verification workflow | Admin → Team gives field agent, lawyer and surveyor roles. Admin opens a case from a paid order, assigns the team and a due date. Partners see their cases under **Work**, record findings for their stage (registry, site visit, GPS survey) and upload photos/PDFs (stored privately in `storage/evidence`, photos keep their GPS data as proof). Admin publishes: a PDF report is generated from the findings, stored privately, the buyer gets a download link (account page or private emailed link), and the listing's trust level can be raised |
 | Roles | `USER`, `AGENT`, `ADMIN`; only admins can open `/admin` |
 
 All listings, agents and phone numbers in the seed data are fictional.
@@ -77,6 +78,9 @@ src/lib/photos.ts         photo processing (sharp), ordering and cover
 src/lib/storage.ts        file storage (local disk; swap for cloud storage)
 src/lib/notify.ts         email/WhatsApp notifications and the message outbox
 src/app/agent/            agent portal
+src/app/work/             partner work portal (field agents, lawyers, surveyors)
+src/lib/verification.ts   case access rules and evidence storage
+src/lib/report-pdf.ts     PDF report generator (pdf-lib)
 prisma/seed.ts            sample data
 src/app/                  pages and server actions (actions.ts)
 src/components/           UI components
@@ -99,3 +103,4 @@ src/lib/search.ts         search filters -> database query
 
 - Currency rates in `src/lib/constants.ts` are approximate placeholders; use a live rate feed before taking payments.
 - Tailwind is pinned to 4.1.13 because newer versions need Node 20.19+.
+- Keeping the project inside OneDrive can corrupt the `.next` build folder while the dev server runs. If pages start failing with "ENOENT" errors, stop the server, delete `.next`, and start again, or move the project to a folder outside OneDrive (e.g. `C:\dev\gambia-homes`).

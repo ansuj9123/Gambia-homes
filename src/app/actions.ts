@@ -218,8 +218,9 @@ export async function updateListing(fd: FormData) {
 export async function updateVerificationStatus(fd: FormData) {
   await requireAdmin();
   const d = z
-    .object({ id: z.string(), status: z.enum(["AWAITING_PAYMENT", "IN_PROGRESS", "COMPLETE"]) })
+    .object({ id: z.string(), status: z.enum(["AWAITING_PAYMENT", "IN_PROGRESS"]) })
     .parse(fields(fd, ["id", "status"]));
-  await db.verificationOrder.update({ where: { id: d.id }, data: { status: d.status } });
+  // Published reports can't be reopened from here.
+  await db.verificationOrder.updateMany({ where: { id: d.id, status: { not: "COMPLETE" } }, data: { status: d.status } });
   revalidatePath("/admin");
 }

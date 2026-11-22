@@ -37,6 +37,9 @@ export function Header({ user }: { user: AccountUser | null }) {
           {user?.role === "ADMIN" && (
             <Link href="/admin" className="text-sm font-medium text-slate-700 hover:text-brand-700">Admin</Link>
           )}
+          {user && ["FIELD_AGENT", "LAWYER", "SURVEYOR"].includes(user.role) && (
+            <Link href="/work" className="text-sm font-medium text-slate-700 hover:text-brand-700">Work</Link>
+          )}
           {(user?.role === "AGENT" || user?.role === "ADMIN") && (
             <Link href="/agent" className="text-sm font-medium text-slate-700 hover:text-brand-700">Agent portal</Link>
           )}

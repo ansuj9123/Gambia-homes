@@ -134,3 +134,33 @@ export async function notifyNewEnquiry(enquiryId: string, origin = siteUrl()) {
 
   await Promise.all(jobs);
 }
+
+/** Emails the buyer a private download link when their report is published. */
+export async function notifyReportReady(orderId: string, origin = siteUrl()) {
+  const o = await db.verificationOrder.findUnique({ where: { id: orderId }, include: { property: true } });
+  if (!o) return;
+  const link = `${origin}/api/reports/${o.id}?token=${o.accessToken}`;
+  const outcome =
+    o.outcome === "VERIFIED" ? "Our checks found no problems." : o.outcome === "ISSUES_FOUND" ? "Our checks found issues you should read before going further." : "We couldn't complete every check; the report explains why.";
+  await send({
+    channel: "EMAIL",
+    kind: "REPORT_READY",
+    to: o.email,
+    relatedId: o.id,
+    subject: `Your verification report is ready: ${o.property.title}`,
+    body: [
+      `Hello ${o.name},`,
+      ``,
+      `Your verification report for "${o.property.title}" (${o.property.area}) is ready.`,
+      outcome,
+      ``,
+      `Download your report (private link, don't share it):`,
+      link,
+      ``,
+      `If you have an account, it's also under Account → Verification reports.`,
+      `Talk to your own lawyer before paying, and pay only through a lawyer's client account or escrow.`,
+      ``,
+      `— Gambia Homes`,
+    ].join("\n"),
+  });
+}

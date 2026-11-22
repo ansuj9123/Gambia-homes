@@ -6,11 +6,13 @@ import { db } from "@/lib/db";
 import { TRUST_LEVELS, TYPES, labelFor } from "@/lib/constants";
 import { formatMoney, rentSuffix } from "@/lib/format";
 import { updateListing, updateVerificationStatus } from "@/app/actions";
+import { STAFF_ROLES } from "@/lib/verification";
+import { TeamRoleForm } from "@/components/VerificationForms";
 
 export const metadata: Metadata = { title: "Admin — Gambia Homes" };
 export const dynamic = "force-dynamic";
 
-type Tab = "pending" | "live" | "verifications" | "enquiries" | "reports" | "messages";
+type Tab = "pending" | "live" | "verifications" | "enquiries" | "reports" | "messages" | "team";
 const TABS: { id: Tab; label: string }[] = [
   { id: "pending", label: "Pending listings" },
   { id: "live", label: "Live listings" },
@@ -18,6 +20,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "enquiries", label: "Enquiries" },
   { id: "reports", label: "Scam reports" },
   { id: "messages", label: "Messages sent" },
+  { id: "team", label: "Team" },
 ];
 
 const when = (d: Date) => d.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -55,6 +58,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         {tab === "enquiries" ? <Enquiries /> : null}
         {tab === "reports" ? <Reports /> : null}
         {tab === "messages" ? <Messages /> : null}
+        {tab === "team" ? <Team /> : null}
       </div>
     </div>
   );
@@ -124,7 +128,13 @@ async function Verifications() {
         {rows.map((v) => (
           <tr key={v.id}>
             <td className={cell}><p className="font-medium">{v.name}</p><p className="text-slate-500">{v.email}{v.country ? ` · ${v.country}` : ""}</p><p className="text-xs text-slate-500">{when(v.createdAt)}</p></td>
-            <td className={cell}><Link href={`/property/${v.property.slug}`} className="text-brand-700 hover:underline">{v.property.title}</Link></td>
+            <td className={cell}>
+              <Link href={`/property/${v.property.slug}`} className="text-brand-700 hover:underline">{v.property.title}</Link>
+              <p><Link href={`/admin/verifications/${v.id}`} className="font-semibold text-slate-900 hover:underline">Open case →</Link></p>
+              <p className="text-xs text-slate-500">
+                {[v.registrySearchedAt && "registry ✓", v.siteVisitedAt && "site ✓", v.surveyedAt && "survey ✓"].filter(Boolean).join(" · ") || "no checks recorded yet"}
+              </p>
+            </td>
             <td className={cell}>{v.level === "FULL" ? "Full" : "Basic"} · £{v.priceGbp}</td>
             <td className={cell}>
               {v.payments[0] ? (
@@ -139,15 +149,19 @@ async function Verifications() {
               )}
             </td>
             <td className={cell}>
-              <form action={updateVerificationStatus} className="flex gap-2">
-                <input type="hidden" name="id" value={v.id} />
-                <select name="status" defaultValue={v.status} className="rounded border border-slate-300 px-2 py-1">
-                  <option value="AWAITING_PAYMENT">Awaiting payment</option>
-                  <option value="IN_PROGRESS">In progress</option>
-                  <option value="COMPLETE">Complete</option>
-                </select>
-                <button className="rounded bg-slate-900 px-3 py-1 text-white">Save</button>
-              </form>
+              {v.status === "COMPLETE" ? (
+                <span className="rounded bg-emerald-100 px-1.5 text-xs font-medium text-emerald-800">Report published</span>
+              ) : (
+                // Manual override for payments taken outside Stripe (e.g. bank transfer). Completing happens by publishing a report.
+                <form action={updateVerificationStatus} className="flex gap-2">
+                  <input type="hidden" name="id" value={v.id} />
+                  <select name="status" defaultValue={v.status} className="rounded border border-slate-300 px-2 py-1">
+                    <option value="AWAITING_PAYMENT">Awaiting payment</option>
+                    <option value="IN_PROGRESS">Paid, checks in progress</option>
+                  </select>
+                  <button className="rounded bg-slate-900 px-3 py-1 text-white">Save</button>
+                </form>
+              )}
             </td>
           </tr>
         ))}
@@ -228,5 +242,39 @@ async function Messages() {
         </tbody>
       </table>
     </>
+  );
+}
+
+async function Team() {
+  const staff = await db.user.findMany({
+    where: { role: { in: ["ADMIN", "FIELD_AGENT", "LAWYER", "SURVEYOR"] } },
+    select: { id: true, name: true, email: true, phone: true, role: true, _count: { select: { fieldCases: true, lawyerCases: true, surveyorCases: true } } },
+    orderBy: [{ role: "asc" }, { name: "asc" }],
+  });
+  const label = (r: string) => (r === "ADMIN" ? "Admin" : STAFF_ROLES.find((s) => s.value === r)?.label ?? r);
+  return (
+    <div className="space-y-4 p-4">
+      <div>
+        <p className="mb-2 text-sm text-slate-600">
+          Give a role to someone who already has an account (they sign up first with email or phone). Field agents, lawyers and
+          surveyors only see the cases you assign them, under <strong>Work</strong>.
+        </p>
+        <TeamRoleForm roles={STAFF_ROLES} />
+      </div>
+      <table className="w-full text-sm">
+        <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+          <tr><th className={cell}>Person</th><th className={cell}>Role</th><th className={cell}>Cases assigned</th></tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {staff.map((u) => (
+            <tr key={u.id}>
+              <td className={cell}><p className="font-medium">{u.name ?? "—"}</p><p className="text-slate-500">{[u.email, u.phone].filter(Boolean).join(" · ")}</p></td>
+              <td className={cell}>{label(u.role)}</td>
+              <td className={cell}>{u._count.fieldCases + u._count.lawyerCases + u._count.surveyorCases}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
