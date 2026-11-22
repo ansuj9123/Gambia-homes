@@ -12,6 +12,7 @@ import { TrustBadge } from "@/components/TrustBadge";
 import { PropertyForms } from "@/components/PropertyForms";
 import { Map } from "@/components/MapLoader";
 import { paymentsEnabled } from "@/lib/stripe";
+import { requestOrigin } from "@/lib/request-origin";
 
 type Props = { params: Promise<{ slug: string }>; searchParams?: Promise<{ payment?: string }> };
 
@@ -39,7 +40,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
     ["Listed", p.createdAt.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })],
   ];
 
-  const url = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/property/${p.slug}`;
+  const url = `${await requestOrigin()}/property/${p.slug}`;
   const wa = whatsappLink(p.agent.phone, `Hello, I saw "${p.title}" on Gambia Homes and would like more details. ${url}`);
   const nearby = await db.property.findMany({
     where: { status: "LIVE", area: p.area, id: { not: p.id } },

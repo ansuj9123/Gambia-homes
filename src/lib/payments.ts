@@ -6,7 +6,7 @@ import { VERIFICATION_PRODUCTS } from "./constants";
 type CheckoutResult = { ok: true; url: string } | { ok: false; error: string };
 
 /** Creates a Payment row and a Stripe Checkout Session for a verification order. */
-export async function createVerificationCheckout(orderId: string): Promise<CheckoutResult> {
+export async function createVerificationCheckout(orderId: string, origin = siteUrl()): Promise<CheckoutResult> {
   const stripe = getStripe();
   if (!stripe) return { ok: false, error: "Card payments aren't set up yet." };
 
@@ -48,8 +48,8 @@ export async function createVerificationCheckout(orderId: string): Promise<Check
         client_reference_id: payment.id,
         metadata,
         payment_intent_data: { metadata },
-        success_url: `${siteUrl()}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${siteUrl()}/property/${order.property.slug}?payment=cancelled`,
+        success_url: `${origin}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/property/${order.property.slug}?payment=cancelled`,
       },
       { idempotencyKey: `checkout-${payment.id}` },
     );

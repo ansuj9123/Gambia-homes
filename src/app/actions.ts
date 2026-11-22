@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { notifyNewEnquiry } from "@/lib/notify";
+import { requestOrigin } from "@/lib/request-origin";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { auth } from "@/auth";
@@ -44,7 +45,8 @@ export async function sendEnquiry(_prev: FormState, fd: FormData): Promise<FormS
   const userId = (await auth())?.user?.id;
   const enquiry = await db.enquiry.create({ data: { ...parsed.data, userId } });
   // Send the agent alert and buyer receipt after responding, so the buyer isn't kept waiting.
-  after(() => notifyNewEnquiry(enquiry.id));
+  const origin = await requestOrigin();
+  after(() => notifyNewEnquiry(enquiry.id, origin));
   revalidatePath("/agent");
   return {
     ok: true,
@@ -77,7 +79,7 @@ export async function orderVerification(_prev: FormState, fd: FormData): Promise
       message: `${product.label} requested (£${product.priceGbp}). We'll email you a secure payment link and start checks once paid.`,
     };
   }
-  const checkout = await createVerificationCheckout(order.id);
+  const checkout = await createVerificationCheckout(order.id, await requestOrigin());
   if (!checkout.ok) {
     return { ok: false, message: `${checkout.error} Your request is saved; you can pay later from your account.` };
   }

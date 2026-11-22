@@ -38,6 +38,14 @@ Dashboard are recorded as `REFUNDED` through the webhook. Unpaid orders can be p
 `npm run test:webhook` sends signed fake events to the running dev server and checks the results, without a Stripe account
 (set any `whsec_` value in `STRIPE_WEBHOOK_SECRET` first).
 
+## Open it on your phone
+
+- **Same Wi-Fi:** put your computer's Wi-Fi address in `DEV_ORIGINS` in `.env`, run `npm run dev:lan`, and open `http://<that address>:3000` on the phone. Windows must treat the Wi-Fi as a Private network.
+- **From anywhere (mobile data, other people):** keep `npm run dev` running and, in a second terminal, run `npm run tunnel`.
+  It prints a temporary `https://….trycloudflare.com` address that works on any phone. Stop it with Ctrl+C.
+  The address changes each time and only works while your computer is on. Anyone with the link can open the site,
+  so change the admin password first. Development sign-in codes are never shown on screen through the tunnel.
+
 ## What works now
 
 | Area | Features |

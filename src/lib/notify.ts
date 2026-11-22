@@ -55,7 +55,7 @@ export async function send(msg: Message) {
 }
 
 /** Tells the agent about a new enquiry and sends the buyer a receipt. */
-export async function notifyNewEnquiry(enquiryId: string) {
+export async function notifyNewEnquiry(enquiryId: string, origin = siteUrl()) {
   const e = await db.enquiry.findUnique({
     where: { id: enquiryId },
     include: { property: { include: { agent: { include: { user: { select: { email: true } } } } } } },
@@ -65,8 +65,8 @@ export async function notifyNewEnquiry(enquiryId: string) {
   const agent = p.agent;
   const agentName = agent.agency ?? agent.name;
   const what = e.kind === "VIDEO_VIEWING" ? "a live video viewing" : "a message";
-  const listingUrl = `${siteUrl()}/property/${p.slug}`;
-  const leadsUrl = `${siteUrl()}/agent?tab=leads`;
+  const listingUrl = `${origin}/property/${p.slug}`;
+  const leadsUrl = `${origin}/agent?tab=leads`;
   const contact = [e.email, e.phone, e.country && `lives in ${e.country}`].filter(Boolean).join(" · ");
 
   const agentEmail = agent.email ?? agent.user?.email;

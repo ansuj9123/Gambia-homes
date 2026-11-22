@@ -10,6 +10,7 @@ import { hashPassword, verifyPassword } from "@/lib/password";
 import { maskPhone, normalizePhone } from "@/lib/phone";
 import { requestOtp } from "@/lib/otp";
 import { createVerificationCheckout } from "@/lib/payments";
+import { isLocalRequest, requestOrigin } from "@/lib/request-origin";
 
 export type AuthState = { ok: boolean; message: string; devCode?: string; phone?: string } | null;
 
@@ -74,7 +75,9 @@ export async function requestPhoneCode(_prev: AuthState, fd: FormData): Promise<
   if (!phone) return fail("Please enter your number with country code, e.g. +220 700 0000 or +44 7700 900123.");
   const result = await requestOtp(phone);
   if (!result.ok) return { ok: false, message: result.error, phone };
-  return { ok: true, message: `We sent a 6-digit code to ${maskPhone(phone)}.`, phone, devCode: result.devCode };
+  // Never show the development code to someone reaching the site through a public link.
+  const devCode = (await isLocalRequest()) ? result.devCode : undefined;
+  return { ok: true, message: `We sent a 6-digit code to ${maskPhone(phone)}.`, phone, devCode };
 }
 
 export async function signInWithPhone(_prev: AuthState, fd: FormData): Promise<AuthState> {
@@ -229,6 +232,6 @@ export async function payVerificationOrder(fd: FormData) {
     select: { id: true },
   });
   if (!order) redirect("/account");
-  const checkout = await createVerificationCheckout(order.id);
+  const checkout = await createVerificationCheckout(order.id, await requestOrigin());
   redirect(checkout.ok ? checkout.url : "/account?payment=error");
 }
