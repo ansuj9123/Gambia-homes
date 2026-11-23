@@ -6,7 +6,7 @@ Last updated: 22 November 2026 (verification workflow added)
 
 **Roles:** Diaspora buyer (lives abroad) · Local user (lives in The Gambia) · Agent (agent, developer or owner listing property) · Admin (Gambia Homes staff) · Field team (field agents, partner lawyers and surveyors)
 
-**Summary:** 95 stories · 56 done · 34 to do · 5 blocked
+**Summary:** 95 stories · 58 done · 32 to do · 5 blocked
 
 ---
 
@@ -22,8 +22,8 @@ Last updated: 22 November 2026 (verification workflow added)
 | S6 | As a buyer, I want to sort by recommended, most verified, price or newest, so that the best options come first. | ✅ |
 | S7 | As a buyer, I want popular areas and featured verified listings on the home page, so that I can start browsing easily. | ✅ |
 | S8 | As a local user, I want to find rentals, student rooms and short lets, so that the site is useful beyond buying. | ✅ |
-| S9 | As a buyer, I want to draw a search area on the map, so that I can search an exact neighbourhood. | 🔲 |
-| S10 | As a buyer, I want to compare properties side by side, so that I can decide between a shortlist. | 🔲 |
+| S9 | As a buyer, I want to draw a search area on the map, so that I can search an exact neighbourhood. | ✅ (draw, undo, redraw, clear; works with filters, saved searches and shared links) |
+| S10 | As a buyer, I want to compare properties side by side, so that I can decide between a shortlist. | ✅ (up to 4, best values highlighted, shareable link) |
 | S11 | As a buyer, I want area pages (e.g. "Land for sale in Brikama") to show up on Google, so that I can find the site by searching. | 🔲 |
 
 ## 2. Listing pages and trust
@@ -70,7 +70,7 @@ Last updated: 22 November 2026 (verification workflow added)
 | A11 | As a user, I want to reset a forgotten password by email, so that I can get back into my account. | 🔲 Needs an email provider |
 | A12 | As a user, I want to verify my email address, so that the platform knows it's really mine. | 🔲 Needs an email provider |
 | A13 | As a user, I want to sign in with Google or Apple, so that signing up is faster. | ⏳ Built; needs Google/Apple keys |
-| A14 | As a diaspora buyer, I want to share a shortlist with family, so that we can decide together. | 🔲 |
+| A14 | As a diaspora buyer, I want to share a shortlist with family, so that we can decide together. | 🔲 (partly done: a comparison can be shared by link or WhatsApp) |
 
 ## 5. Verification reports and payments
 

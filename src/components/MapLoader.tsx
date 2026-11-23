@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { MapPoint } from "./MapView";
+import type { MapViewProps } from "./MapView";
 
 // Leaflet needs the browser window, so the map renders on the client only.
 const MapView = dynamic(() => import("./MapView"), {
@@ -9,6 +9,6 @@ const MapView = dynamic(() => import("./MapView"), {
   loading: () => <div className="h-[520px] animate-pulse rounded-xl bg-slate-200" />,
 });
 
-export function Map({ points, height }: { points: MapPoint[]; height?: number }) {
-  return <MapView points={points} height={height} />;
+export function Map(props: MapViewProps) {
+  return <MapView {...props} />;
 }

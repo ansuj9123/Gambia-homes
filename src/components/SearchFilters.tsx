@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CURRENCIES, PURPOSES, REGIONS, TRUST_LEVELS, TYPES } from "@/lib/constants";
 import type { ParsedSearch } from "@/lib/search";
 import { useCurrency } from "./CurrencyProvider";
+import { encodeArea } from "@/lib/geo";
 
 const field = "w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm";
 const labelCls = "block text-xs font-semibold uppercase tracking-wide text-slate-500";
@@ -19,6 +20,10 @@ export function SearchFilters({ s }: { s: ParsedSearch }) {
     <form action="/search" method="get" className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
       <input type="hidden" name="cur" value={currency} />
       <input type="hidden" name="view" value={s.view} />
+      {s.polygon && <input type="hidden" name="poly" value={encodeArea(s.polygon)} />}
+      {s.polygon && (
+        <p className="rounded-md bg-ocean-700/10 px-2 py-1.5 text-xs text-ocean-900">Filtering inside your drawn area. Use &ldquo;Clear area&rdquo; to search everywhere.</p>
+      )}
       <div>
         <label className={labelCls} htmlFor="q">Keyword</label>
         <input id="q" name="q" defaultValue={s.q} placeholder="e.g. beach, Brusubi" className={field} />

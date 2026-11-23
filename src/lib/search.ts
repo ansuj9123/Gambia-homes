@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { CURRENCY_CODES, type Currency } from "./constants";
 import { convertToGmd } from "./format";
+import { bounds, insideArea, parseArea } from "./geo";
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -26,6 +27,7 @@ export function parseSearch(sp: SearchParams) {
     trust: num(one(sp.trust)),
     sort: one(sp.sort) ?? "featured",
     view: one(sp.view) === "map" ? "map" : "list",
+    polygon: parseArea(one(sp.poly)), // drawn search area, ?poly=lat,lng;lat,lng;...
   };
 }
 
@@ -46,6 +48,12 @@ export function buildWhere(s: ParsedSearch): Prisma.PropertyWhereInput {
       ...(s.max !== undefined ? { lte: convertToGmd(s.max, s.cur) } : {}),
     };
   }
+  if (s.polygon) {
+    // Rough box first (database), exact polygon check afterwards (filterByArea).
+    const b = bounds(s.polygon);
+    where.lat = { gte: b.minLat, lte: b.maxLat };
+    where.lng = { gte: b.minLng, lte: b.maxLng };
+  }
   if (s.q) {
     where.OR = [{ title: { contains: s.q } }, { area: { contains: s.q } }, { description: { contains: s.q } }];
   }
@@ -65,4 +73,9 @@ export function buildOrder(sort: string): Prisma.PropertyOrderByWithRelationInpu
     default:
       return [{ featured: "desc" }, { trustLevel: "desc" }, { createdAt: "desc" }];
   }
+}
+
+/** Keeps only listings inside the drawn area (if any). */
+export function filterByArea<T extends { lat: number; lng: number }>(rows: T[], s: ParsedSearch) {
+  return s.polygon ? rows.filter((r) => insideArea([r.lat, r.lng], s.polygon!)) : rows;
 }

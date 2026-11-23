@@ -1,11 +1,12 @@
 import { CURRENCIES, TRUST_LEVELS, TYPES, labelFor, type Currency } from "./constants";
 import type { ParsedSearch } from "./search";
+import { areaKm2 } from "./geo";
 
 export function describeSearch(s: ParsedSearch) {
   return [
     s.type ? labelFor(TYPES, s.type) : "Property",
     s.purpose ? (s.purpose === "RENT" ? "to rent" : "for sale") : "",
-    s.area ? `in ${s.area}` : s.region ? `in ${s.region}` : "in The Gambia",
+    s.polygon ? "in your drawn area" : s.area ? `in ${s.area}` : s.region ? `in ${s.region}` : "in The Gambia",
   ]
     .filter(Boolean)
     .join(" ");
@@ -21,5 +22,6 @@ export function describeFilters(s: ParsedSearch) {
   if (s.minPlot) parts.push(`${s.minPlot}+ sqm`);
   if (s.trust) parts.push(`${TRUST_LEVELS[s.trust]?.label ?? ""} or better`);
   if (s.q) parts.push(`"${s.q}"`);
+  if (s.polygon) parts.push(`drawn area of about ${areaKm2(s.polygon).toFixed(1)} km²`);
   return parts.join(" · ");
 }

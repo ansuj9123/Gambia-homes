@@ -8,13 +8,14 @@ import { Price } from "@/components/CurrencyProvider";
 import { Gallery } from "@/components/Gallery";
 import { parsePhotos } from "@/lib/photos";
 import { SaveButton } from "@/components/SaveButton";
+import { CompareButton } from "@/components/CompareProvider";
 import { TrustBadge } from "@/components/TrustBadge";
 import { PropertyForms } from "@/components/PropertyForms";
 import { Map } from "@/components/MapLoader";
 import { paymentsEnabled } from "@/lib/stripe";
 import { requestOrigin } from "@/lib/request-origin";
 
-type Props = { params: Promise<{ slug: string }>; searchParams?: Promise<{ payment?: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams?: Promise<{ payment?: string; tab?: string }> };
 
 async function getProperty(slug: string) {
   return db.property.findFirst({ where: { slug, status: "LIVE" }, include: { agent: true } });
@@ -28,7 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PropertyPage({ params, searchParams }: Props) {
   const p = await getProperty((await params).slug);
   if (!p) notFound();
-  const paymentCancelled = (await searchParams)?.payment === "cancelled";
+  const sp = await searchParams;
+  const paymentCancelled = sp?.payment === "cancelled";
+  const openVerify = paymentCancelled || sp?.tab === "verify";
 
   const facts: [string, string][] = [
     ["Type", labelFor(TYPES, p.type)],
@@ -80,6 +83,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
             <div className="flex items-center gap-2">
               <TrustBadge level={p.trustLevel} size="md" />
               <SaveButton id={p.id} large />
+              <CompareButton id={p.id} large />
             </div>
           </div>
 
@@ -147,7 +151,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
               Chat on WhatsApp
             </a>
           </div>
-          <PropertyForms propertyId={p.id} paymentsOn={paymentsEnabled()} startTab={paymentCancelled ? "verify" : "message"} />
+          <PropertyForms propertyId={p.id} paymentsOn={paymentsEnabled()} startTab={openVerify ? "verify" : "message"} />
           <div className="rounded-xl bg-red-50 p-4 text-sm text-red-900">
             <p className="font-semibold">Protect your money</p>
             <p className="mt-1">Never pay a deposit before viewing and verification. Pay only through a lawyer&apos;s client account or our escrow partner.</p>

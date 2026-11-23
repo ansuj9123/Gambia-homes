@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { CurrencyProvider } from "@/components/CurrencyProvider";
 import { AccountProvider, type AccountUser } from "@/components/AccountProvider";
 import { Footer, Header } from "@/components/Header";
+import { CompareProvider } from "@/components/CompareProvider";
 
 export const metadata: Metadata = {
   title: "Gambia Homes — verified property in The Gambia",
@@ -26,9 +27,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="min-h-screen antialiased">
         <CurrencyProvider>
           <AccountProvider user={user} savedIds={savedIds}>
-            <Header user={user} />
-            <main>{children}</main>
-            <Footer />
+            <CompareProvider>
+              <Header user={user} />
+              <main>{children}</main>
+              <Footer />
+            </CompareProvider>
           </AccountProvider>
         </CurrencyProvider>
       </body>

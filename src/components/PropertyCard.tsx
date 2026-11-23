@@ -4,6 +4,7 @@ import { TYPES, labelFor } from "@/lib/constants";
 import { Price } from "./CurrencyProvider";
 import { PropertyImage } from "./PropertyImage";
 import { SaveButton } from "./SaveButton";
+import { CompareButton } from "./CompareProvider";
 import { TrustBadge } from "./TrustBadge";
 
 export function PropertyCard({ p }: { p: Property }) {
@@ -34,7 +35,10 @@ export function PropertyCard({ p }: { p: Property }) {
         <p className="text-sm text-slate-500">
           {labelFor(TYPES, p.type)} · {p.area}, {p.region}
         </p>
-        {facts.length > 0 && <p className="text-sm text-slate-600">{facts.join(" · ")}</p>}
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm text-slate-600">{facts.join(" · ")}</p>
+          <CompareButton id={p.id} />
+        </div>
       </div>
     </Link>
   );

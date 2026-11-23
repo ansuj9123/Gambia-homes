@@ -64,6 +64,8 @@ Dashboard are recorded as `REFUNDED` through the webhook. Unpaid orders can be p
 | Agent portal | `/agent`: listings with status and lead counts, edit details and photos, mark as sold/let or withdraw, leads inbox with WhatsApp/email reply and New/Contacted/Closed status. Agents get access by signing in with a code to the phone number on their listings, or by listing while signed in |
 | Notifications | New enquiry → alert to the agent (email + WhatsApp) and a receipt to the buyer. All messages appear in Admin → Messages sent. Emails send when `SMTP_URL` is set; WhatsApp is recorded only until the WhatsApp Business Platform is connected |
 | Verification workflow | Admin → Team gives field agent, lawyer and surveyor roles. Admin opens a case from a paid order, assigns the team and a due date. Partners see their cases under **Work**, record findings for their stage (registry, site visit, GPS survey) and upload photos/PDFs (stored privately in `storage/evidence`, photos keep their GPS data as proof). Admin publishes: a PDF report is generated from the findings, stored privately, the buyer gets a download link (account page or private emailed link), and the listing's trust level can be raised |
+| Draw a search area | **✏️ Draw an area** on the search page: tap the map to mark corners, then Finish. Results are limited to listings inside the shape (box filter in the database, exact polygon check in `src/lib/geo.ts`). The area lives in the URL (`?poly=lat,lng;…`), so it works with filters, saved searches and shared links. Move to PostGIS for this at scale |
+| Compare | **+ Compare** on cards and listing pages (up to 4, remembered on the device), a bottom bar, and `/compare` with a side-by-side table that highlights the best value per row. The link (`/compare?ids=…`) can be copied or shared on WhatsApp |
 | Roles | `USER`, `AGENT`, `ADMIN`; only admins can open `/admin` |
 
 All listings, agents and phone numbers in the seed data are fictional.
@@ -103,4 +105,5 @@ src/lib/search.ts         search filters -> database query
 
 - Currency rates in `src/lib/constants.ts` are approximate placeholders; use a live rate feed before taking payments.
 - Tailwind is pinned to 4.1.13 because newer versions need Node 20.19+.
-- Keeping the project inside OneDrive can corrupt the `.next` build folder while the dev server runs. If pages start failing with "ENOENT" errors, stop the server, delete `.next`, and start again, or move the project to a folder outside OneDrive (e.g. `C:\dev\gambia-homes`).
+- Keep the project outside OneDrive/Dropbox folders (e.g. `C:\dev\gambia-homes`). Syncing tools lock and corrupt the `.next` build folder while the dev server runs. If pages ever fail with "ENOENT" or "Internal Server Error", stop the server, delete `.next`, and start again.
+- `npm install` runs `prisma generate` automatically (the `postinstall` script), so the database client is always up to date.

@@ -187,7 +187,7 @@ export async function mergeLocalSaved(ids: string[]): Promise<string[]> {
 
 // ---------- Saved searches ----------
 
-const ALLOWED_PARAMS = ["q", "purpose", "type", "region", "area", "cur", "min", "max", "beds", "minPlot", "trust", "sort"];
+const ALLOWED_PARAMS = ["q", "purpose", "type", "region", "area", "cur", "min", "max", "beds", "minPlot", "trust", "sort", "poly"];
 
 export async function saveSearch(query: string, name: string): Promise<{ ok: boolean; message: string }> {
   const userId = await requireUserId();
@@ -196,7 +196,7 @@ export async function saveSearch(query: string, name: string): Promise<{ ok: boo
   const clean = new URLSearchParams();
   for (const k of ALLOWED_PARAMS) {
     const v = params.get(k);
-    if (v) clean.set(k, v.slice(0, 80));
+    if (v) clean.set(k, v.slice(0, k === "poly" ? 1000 : 80));
   }
   const count = await db.savedSearch.count({ where: { userId } });
   if (count >= 20) return { ok: false, message: "You can save up to 20 searches. Delete one first." };
